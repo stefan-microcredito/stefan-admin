@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stefan Microcrédito, EI — Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A84C;--gold-light:#E8C97A;--dark:#0D0D0D;--dark-2:#161616;--dark-3:#1E1E1E;--dark-4:#2A2A2A;--text:#F0EDE8;--muted:#9A9590;--green:#4CAF84;--warn:#E8A84C;--red:#E05A5A;--blue:#4C8FE8;--border:rgba(201,168,76,0.15)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:radial-gradient(ellipse 70% 60% at 20% 30%,rgba(201,168,76,.07) 0%,transparent 60%),var(--dark)}
+.lcard{background:var(--dark-2);border:1px solid var(--border);border-radius:20px;padding:2.5rem;width:100%;max-width:400px;position:relative;overflow:hidden;animation:fadeUp .6s ease both}
+.lcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.llogo{display:flex;align-items:center;gap:.75rem;margin-bottom:2rem}
+.lmark{width:44px;height:44px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:12px;display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:1.2rem;color:var(--dark)}
+.lbrand{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+.lbrand span{color:var(--gold)}
+.lbrand small{display:block;font-family:'DM Sans',sans-serif;font-size:.7rem;color:var(--muted);font-weight:400}
+.ltitle{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;margin-bottom:.3rem}
+.lsub{font-size:.82rem;color:var(--muted);margin-bottom:1.8rem}
+.lf{margin-bottom:1.1rem}
+.lf label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.45rem}
+.lf input{width:100%;background:var(--dark-3);border:1px solid var(--dark-4);border-radius:10px;padding:.8rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s}
+.lf input:focus{border-color:var(--gold)}
+.lerr{font-size:.78rem;color:var(--red);margin-bottom:1rem;display:none;padding:.6rem .9rem;background:rgba(224,90,90,.08);border-radius:8px;border:1px solid rgba(224,90,90,.2)}
+.btn-login{width:100%;padding:.85rem;background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;border:none;border-radius:10px;cursor:pointer;transition:all .2s;letter-spacing:.03em}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,168,76,.3)}
+
+/* LAYOUT */
+#dashboard{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--dark-2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;padding:1.5rem 0}
+.sb-logo{display:flex;align-items:center;gap:.65rem;padding:0 1.5rem 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.sb-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold-light));border-radius:9px;display:grid;place-items:center;font-family:'Playfair Display',serif;font-weight:900;font-size:1rem;color:var(--dark);flex-shrink:0}
+.sb-name{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;line-height:1.2}
+.sb-name span{color:var(--gold)}
+.sb-name small{display:block;font-family:'DM Sans',sans-serif;font-size:.65rem;color:var(--muted);font-weight:400}
+.sb-nav{flex:1;padding:0 .75rem}
+.sb-item{display:flex;align-items:center;gap:.65rem;padding:.65rem .85rem;border-radius:10px;font-size:.85rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;margin-bottom:.2rem;user-select:none}
+.sb-item:hover{background:var(--dark-3);color:var(--text)}
+.sb-item.active{background:rgba(201,168,76,.1);color:var(--gold)}
+.sb-item .icon{font-size:1rem;width:20px;text-align:center}
+.sb-footer{padding:1rem 1.5rem 0;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:.5rem}
+.btn-sair{padding:.6rem;background:transparent;border:1px solid var(--dark-4);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;width:100%}
+.btn-sair:hover{border-color:var(--red);color:var(--red)}
+.btn-pass{padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;width:100%}
+.btn-pass:hover{border-color:var(--gold);color:var(--gold)}
+
+.main{margin-left:240px;padding:2rem;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem}
+.page-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700}
+.page-date{font-size:.8rem;color:var(--muted)}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block;animation:fadeUp .3s ease both}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--dark-2);border:1px solid var(--border);border-radius:14px;padding:1.2rem 1.4rem;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.stat-card.c1::after{background:var(--gold)}.stat-card.c2::after{background:var(--warn)}.stat-card.c3::after{background:var(--green)}.stat-card.c4::after{background:var(--red)}
+.stat-label{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.stat-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;line-height:1;margin-bottom:.3rem}
+.stat-sub{font-size:.72rem;color:var(--muted)}
+.stat-card.c1 .stat-value{color:var(--gold)}.stat-card.c2 .stat-value{color:var(--warn)}.stat-card.c3 .stat-value{color:var(--green)}.stat-card.c4 .stat-value{color:var(--red)}
+
+/* FILTER */
+.filter-bar{display:flex;align-items:center;gap:.75rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.filter-bar input{background:var(--dark-2);border:1px solid var(--border);border-radius:10px;padding:.6rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;width:240px;transition:border-color .2s}
+.filter-bar input:focus{border-color:var(--gold)}
+.fbtn{padding:.6rem 1rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--dark-2);color:var(--muted);transition:all .2s;letter-spacing:.04em}
+.fbtn:hover{color:var(--text);border-color:var(--muted)}
+.fbtn.active{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold)}
+
+/* TABLE */
+.table-wrap{background:var(--dark-2);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--border)}
+th{padding:.85rem 1.2rem;text-align:left;font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s;cursor:pointer}
+tbody tr:last-child{border:none}
+tbody tr:hover{background:rgba(201,168,76,.04)}
+td{padding:.9rem 1.2rem;font-size:.85rem}
+.td-ref{font-size:.75rem;color:var(--muted);font-weight:500}
+.td-name{font-weight:600}
+.td-amt{font-weight:700;color:var(--gold)}
+.badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .7rem;border-radius:100px;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%}
+.bp{background:rgba(232,168,76,.12);color:var(--warn)}.bp::before{background:var(--warn)}
+.ba{background:rgba(76,175,132,.12);color:var(--green)}.ba::before{background:var(--green)}
+.br{background:rgba(224,90,90,.12);color:var(--red)}.br::before{background:var(--red)}
+.ban{background:rgba(76,143,232,.12);color:var(--blue)}.ban::before{background:var(--blue)}
+.empty{text-align:center;padding:3rem;color:var(--muted);font-size:.85rem}
+.empty .ei{font-size:2rem;margin-bottom:.75rem}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:1.5rem}
+.overlay.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--dark-2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:fadeUp .3s ease}
+.mh{padding:1.5rem 1.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--dark-2);z-index:10}
+.mtitle{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700}
+.mref{font-size:.72rem;color:var(--gold);margin-top:.2rem}
+.mbody{padding:1.5rem 1.8rem}
+.msec{margin-bottom:1.4rem}
+.mstitle{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.di .dk{font-size:.7rem;color:var(--muted);margin-bottom:.2rem;font-weight:500}
+.di .dv{font-size:.88rem;font-weight:600}
+.di .dv.big{font-size:1.2rem;color:var(--gold);font-family:'Playfair Display',serif}
+.di.full{grid-column:1/-1}
+.mfoot{padding:1.2rem 1.8rem;border-top:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap}
+.bst{flex:1;padding:.65rem;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;border:none;transition:all .2s;letter-spacing:.03em}
+.bst-apr{background:rgba(76,175,132,.15);color:var(--green);border:1px solid rgba(76,175,132,.3)}.bst-apr:hover{background:var(--green);color:var(--dark)}
+.bst-an{background:rgba(76,143,232,.1);color:var(--blue);border:1px solid rgba(76,143,232,.3)}.bst-an:hover{background:var(--blue);color:white}
+.bst-rec{background:rgba(224,90,90,.1);color:var(--red);border:1px solid rgba(224,90,90,.3)}.bst-rec:hover{background:var(--red);color:white}
+.bclose{width:32px;height:32px;border-radius:8px;background:var(--dark-3);border:none;color:var(--muted);font-size:1rem;cursor:pointer;transition:all .2s;display:grid;place-items:center}
+.bclose:hover{background:var(--dark-4);color:var(--text)}
+
+/* SETTINGS */
+.set-section{background:var(--dark-2);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.2rem;max-width:680px}
+.set-head{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.7rem}
+.set-head .ico{font-size:1.1rem}
+.set-head .sh-title{font-weight:700;font-size:.95rem}
+.set-head .sh-sub{font-size:.75rem;color:var(--muted)}
+.set-body{padding:1.2rem 1.5rem}
+.sg2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.sf label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.sf input{width:100%;background:var(--dark-3);border:1.5px solid var(--dark-4);border-radius:8px;padding:.7rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
+.sf input:focus{border-color:var(--gold)}
+.smsg{display:none;font-size:.78rem;padding:.5rem .8rem;border-radius:6px;margin-bottom:.8rem}
+.btn-save{padding:.7rem 1.5rem;background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;border-radius:8px;color:var(--dark);font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(201,168,76,.3)}
+
+/* RELATORIOS */
+.rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:680px}
+.rel-card{background:var(--dark-2);border:1px solid var(--border);border-radius:14px;padding:1.3rem;text-align:center}
+.rel-val{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--gold);margin-bottom:.3rem}
+.rel-lbl{font-size:.75rem;color:var(--muted);font-weight:500}
+
+/* CLIENTES */
+.cli-card{background:var(--dark-2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;cursor:pointer;transition:background .15s;max-width:680px}
+.cli-card:hover{background:var(--dark-3)}
+.cli-nome{font-weight:600;font-size:.9rem}
+.cli-info{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+
+/* RESPONSIVE */
+@media(max-width:900px){.sidebar{width:200px}.main{margin-left:200px}.stats-grid{grid-template-columns:1fr 1fr}.rel-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.sidebar{display:none}.main{margin-left:0;padding:1rem}.stats-grid{grid-template-columns:1fr 1fr}th:nth-child(3),td:nth-child(3),th:nth-child(5),td:nth-child(5){display:none}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* PAGAMENTO */
+.bst-pag{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.3)}.bst-pag:hover{background:var(--gold);color:var(--dark)}
+.bst-del{background:rgba(224,90,90,.08);color:var(--red);border:1px solid rgba(224,90,90,.2)}.bst-del:hover{background:var(--red);color:white}
+.pag-badge{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .7rem;border-radius:100px;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(201,168,76,.12);color:var(--gold)}
+.pag-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.pag-list{margin-top:.6rem;display:flex;flex-direction:column;gap:.4rem}
+.pag-item{display:flex;justify-content:space-between;align-items:center;padding:.5rem .8rem;background:var(--dark-3);border-radius:7px;font-size:.78rem}
+.pag-item-val{color:var(--green);font-weight:700}
+.pag-item-date{color:var(--muted)}
+/* CONFIRM DELETE MODAL */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:400;display:none;align-items:center;justify-content:center;padding:1.5rem}
+.confirm-overlay.open{display:flex;animation:fadeIn .2s ease}
+.confirm-box{background:var(--dark-2);border:1px solid rgba(224,90,90,.3);border-radius:16px;padding:2rem;width:100%;max-width:380px;text-align:center}
+.confirm-icon{font-size:2.5rem;margin-bottom:.8rem}
+.confirm-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:.5rem}
+.confirm-msg{font-size:.83rem;color:var(--muted);line-height:1.6;margin-bottom:1.5rem}
+.confirm-btns{display:flex;gap:.75rem}
+.btn-conf-cancel{flex:1;padding:.7rem;background:transparent;border:1px solid var(--dark-4);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer;transition:all .2s}
+.btn-conf-cancel:hover{border-color:var(--muted);color:var(--text)}
+.btn-conf-del{flex:1;padding:.7rem;background:var(--red);border:none;border-radius:8px;color:white;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-conf-del:hover{background:#c94040}
+/* PAGAMENTO INPUT MODAL */
+.pag-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:400;display:none;align-items:center;justify-content:center;padding:1.5rem}
+.pag-overlay.open{display:flex;animation:fadeIn .2s ease}
+.pag-box{background:var(--dark-2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:420px;overflow:hidden}
+.pag-head{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pag-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+.pag-body{padding:1.4rem 1.5rem}
+.pf{margin-bottom:1rem}
+.pf label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.pf input,.pf select{width:100%;background:var(--dark-3);border:1.5px solid var(--dark-4);border-radius:8px;padding:.7rem .9rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.pf input:focus,.pf select:focus{border-color:var(--gold)}
+.pag-foot{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.75rem}
+.btn-pag-cancel{flex:1;padding:.7rem;background:transparent;border:1px solid var(--dark-4);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.85rem;cursor:pointer}
+.btn-pag-save{flex:1;padding:.7rem;background:linear-gradient(135deg,var(--gold),var(--gold-light));border:none;border-radius:8px;color:var(--dark);font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="lcard">
+    <div class="llogo">
+      <div class="lmark">S</div>
+      <div class="lbrand">Stefan <span>Microcrédito</span><small>EI — Área Administrativa</small></div>
+    </div>
+    <div class="ltitle">Bem-vindo</div>
+    <div class="lsub">Acesso restrito. Insira as suas credenciais.</div>
+    <div class="lerr" id="loginErr">Utilizador ou password incorrectos.</div>
+    <div class="lf">
+      <label>Utilizador</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="lf">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Entrar no Painel</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-mark">S</div>
+      <div class="sb-name">Stefan <span>Microcrédito</span><small>EI — Admin</small></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-item active" id="nav-pedidos"    onclick="showPage('pedidos')">   <span class="icon">📋</span> Pedidos</div>
+      <div class="sb-item"        id="nav-relatorios" onclick="showPage('relatorios')"><span class="icon">📊</span> Relatórios</div>
+      <div class="sb-item"        id="nav-clientes"   onclick="showPage('clientes')">  <span class="icon">👥</span> Clientes</div>
+      <div class="sb-item"        id="nav-definicoes" onclick="showPage('definicoes')"><span class="icon">⚙️</span> Definições</div>
+    </nav>
+    <div class="sb-footer">
+      <button class="btn-pass" onclick="showPage('definicoes')">🔑 Alterar Password</button>
+      <button class="btn-sair" onclick="doLogout()">🚪 Sair</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">Pedidos de Financiamento</div>
+        <div class="page-date"  id="topDate"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: PEDIDOS -->
+    <div class="page active" id="page-pedidos">
+      <div class="stats-grid">
+        <div class="stat-card c1"><div class="stat-label">Total</div><div class="stat-value" id="statTotal">0</div><div class="stat-sub">Todos os registos</div></div>
+        <div class="stat-card c2"><div class="stat-label">Pendentes</div><div class="stat-value" id="statPendente">0</div><div class="stat-sub">Aguardam análise</div></div>
+        <div class="stat-card c3"><div class="stat-label">Aprovados</div><div class="stat-value" id="statAprovado">0</div><div class="stat-sub">Prontos para desembolso</div></div>
+        <div class="stat-card c4"><div class="stat-label">Recusados</div><div class="stat-value" id="statRecusado">0</div><div class="stat-sub">Não elegíveis</div></div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="searchInput" placeholder="🔍  Pesquisar por nome, BI ou referência..." oninput="renderTable()">
+        <button class="fbtn active" onclick="setFilter('todos',this)">Todos</button>
+        <button class="fbtn" onclick="setFilter('pendente',this)">Pendente</button>
+        <button class="fbtn" onclick="setFilter('analise',this)">Em Análise</button>
+        <button class="fbtn" onclick="setFilter('aprovado',this)">Aprovado</button>
+        <button class="fbtn" onclick="setFilter('recusado',this)">Recusado</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Referência</th><th>Nome do Cliente</th><th>Localização</th>
+            <th>Valor (MT)</th><th>Prazo</th><th>Finalidade</th><th>Estado</th><th>Data</th>
+          </tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty" id="emptyState" style="display:none"><div class="ei">📭</div>Nenhum pedido encontrado.</div>
+      </div>
+    </div>
+
+    <!-- PAGE: RELATORIOS -->
+    <div class="page" id="page-relatorios">
+
+      <!-- Secção 1: Pedidos -->
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem">📋 Resumo de Pedidos</div>
+      <div class="rel-grid" style="margin-bottom:1.5rem">
+        <div class="rel-card"><div class="rel-val" id="relTotal">0</div><div class="rel-lbl">Total de Pedidos</div></div>
+        <div class="rel-card"><div class="rel-val" id="relAprov">0</div><div class="rel-lbl">Aprovados</div></div>
+        <div class="rel-card"><div class="rel-val" id="relRecus">0</div><div class="rel-lbl">Recusados</div></div>
+        <div class="rel-card"><div class="rel-val" id="relPend">0</div><div class="rel-lbl">Pendentes</div></div>
+        <div class="rel-card"><div class="rel-val" id="relAnal">0</div><div class="rel-lbl">Em Análise</div></div>
+        <div class="rel-card"><div class="rel-val" id="relMT">0</div><div class="rel-lbl">Total Solicitado (MT)</div></div>
+      </div>
+
+      <!-- Secção 2: Pagamentos -->
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem">💰 Resumo Financeiro</div>
+      <div class="rel-grid" style="margin-bottom:1.5rem">
+        <div class="rel-card" style="border-color:rgba(76,175,132,.3)">
+          <div class="rel-val" id="relPago" style="color:var(--green)">MT 0</div>
+          <div class="rel-lbl">Total Pago</div>
+        </div>
+        <div class="rel-card" style="border-color:rgba(224,90,90,.3)">
+          <div class="rel-val" id="relEmFalta" style="color:var(--red)">MT 0</div>
+          <div class="rel-lbl">Total por Pagar</div>
+        </div>
+        <div class="rel-card" style="border-color:rgba(201,168,76,.3)">
+          <div class="rel-val" id="relPercentPago" style="color:var(--gold)">0%</div>
+          <div class="rel-lbl">Taxa de Recuperação</div>
+        </div>
+        <div class="rel-card" style="border-color:rgba(76,143,232,.3)">
+          <div class="rel-val" id="relDesembolsado" style="color:var(--blue)">MT 0</div>
+          <div class="rel-lbl">Total Desembolsado</div>
+        </div>
+      </div>
+
+      <!-- Secção 3: Tabela por cliente (aprovados) -->
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem">👤 Situação por Cliente (Aprovados)</div>
+      <div class="table-wrap" style="max-width:780px;margin-bottom:1.5rem">
+        <table>
+          <thead><tr>
+            <th>Cliente</th>
+            <th>Valor Crédito</th>
+            <th>Total Pago</th>
+            <th>Por Pagar</th>
+            <th>Situação</th>
+          </tr></thead>
+          <tbody id="relClientes"></tbody>
+        </table>
+        <div class="empty" id="relClientesEmpty" style="display:none"><div class="ei">📊</div>Sem créditos aprovados ainda.</div>
+      </div>
+
+      <!-- Secção 4: Por Província -->
+      <div style="font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem">🗺️ Por Província</div>
+      <div class="table-wrap" style="max-width:680px">
+        <table>
+          <thead><tr><th>Província</th><th>Nº Pedidos</th><th>Total (MT)</th></tr></thead>
+          <tbody id="relProvincias"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGE: CLIENTES -->
+    <div class="page" id="page-clientes">
+      <div style="max-width:680px;margin-bottom:1rem">
+        <input type="text" id="cliSearch" placeholder="🔍  Pesquisar cliente..." oninput="renderClientes()" style="width:100%;background:var(--dark-2);border:1px solid var(--border);border-radius:10px;padding:.65rem 1rem;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none">
+      </div>
+      <div id="cliList"><div class="empty"><div class="ei">👥</div>Nenhum cliente encontrado.</div></div>
+    </div>
+
+    <!-- PAGE: DEFINICOES -->
+    <div class="page" id="page-definicoes">
+
+      <div class="set-section">
+        <div class="set-head"><span class="ico">🔑</span><div><div class="sh-title">Credenciais de Acesso</div><div class="sh-sub">Altere o utilizador e password do painel</div></div></div>
+        <div class="set-body">
+          <div class="sg2">
+            <div class="sf"><label>Novo Utilizador</label><input type="text" id="def-user" placeholder="deixe em branco para manter"></div>
+            <div class="sf"><label>Password Actual <span style="color:var(--gold)">*</span></label><input type="password" id="def-passAtual" placeholder="••••••••"></div>
+          </div>
+          <div class="sg2">
+            <div class="sf"><label>Nova Password</label><input type="password" id="def-passNova" placeholder="mínimo 6 caracteres"></div>
+            <div class="sf"><label>Confirmar Password</label><input type="password" id="def-passConf" placeholder="repita a nova password"></div>
+          </div>
+          <div class="smsg" id="msg-cred"></div>
+          <button class="btn-save" onclick="saveCredenciais()">Guardar Credenciais</button>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-head"><span class="ico">🏢</span><div><div class="sh-title">Informações da Empresa</div><div class="sh-sub">Dados de contacto da Stefan Microcrédito, EI</div></div></div>
+        <div class="set-body">
+          <div class="sg2">
+            <div class="sf"><label>Nome da Empresa</label><input type="text" id="def-empresa" value="Stefan Microcrédito, EI"></div>
+            <div class="sf"><label>Telemóvel</label><input type="tel" id="def-tel" placeholder="+258 84 000 0000"></div>
+          </div>
+          <div class="sg2">
+            <div class="sf"><label>Email</label><input type="email" id="def-email" placeholder="stefan@email.com"></div>
+            <div class="sf"><label>Cidade</label><input type="text" id="def-cidade" placeholder="Maputo"></div>
+          </div>
+          <div class="smsg" id="msg-emp"></div>
+          <button class="btn-save" onclick="saveEmpresa()">Guardar Informações</button>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <div class="set-head"><span class="ico">💰</span><div><div class="sh-title">Limites de Crédito</div><div class="sh-sub">Valores e prazos permitidos no formulário</div></div></div>
+        <div class="set-body">
+          <div class="sg2">
+            <div class="sf"><label>Valor Mínimo (MT)</label><input type="number" id="def-minval" value="1000"></div>
+            <div class="sf"><label>Valor Máximo (MT)</label><input type="number" id="def-maxval" value="500000"></div>
+          </div>
+          <div class="sg2">
+            <div class="sf"><label>Prazo Mínimo (meses)</label><input type="number" id="def-minprazo" value="1"></div>
+            <div class="sf"><label>Prazo Máximo (meses)</label><input type="number" id="def-maxprazo" value="24"></div>
+          </div>
+          <div class="smsg" id="msg-lim"></div>
+          <button class="btn-save" onclick="saveLimites()">Guardar Limites</button>
+        </div>
+      </div>
+
+    </div><!-- /page-definicoes -->
+  </div><!-- /main -->
+</div><!-- /dashboard -->
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal">
+    <div class="mh">
+      <div><div class="mtitle" id="mTitle">—</div><div class="mref" id="mRef">—</div></div>
+      <button class="bclose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody">
+      <div class="msec">
+        <div class="mstitle">Dados Pessoais</div>
+        <div class="dgrid">
+          <div class="di"><div class="dk">Nome</div><div class="dv" id="mNome">—</div></div>
+          <div class="di"><div class="dk">BI / NUIT</div><div class="dv" id="mBi">—</div></div>
+          <div class="di"><div class="dk">Telemóvel</div><div class="dv" id="mTel">—</div></div>
+          <div class="di"><div class="dk">Email</div><div class="dv" id="mEmail">—</div></div>
+          <div class="di"><div class="dk">Nascimento</div><div class="dv" id="mNasc">—</div></div>
+          <div class="di"><div class="dk">Género</div><div class="dv" id="mGenero">—</div></div>
+          <div class="di full"><div class="dk">Endereço</div><div class="dv" id="mEnd">—</div></div>
+          <div class="di"><div class="dk">Cidade / Província</div><div class="dv" id="mCidade">—</div></div>
+          <div class="di"><div class="dk">Estado Civil</div><div class="dv" id="mEstado">—</div></div>
+        </div>
+      </div>
+      <div class="msec">
+        <div class="mstitle">Dados do Financiamento</div>
+        <div class="dgrid">
+          <div class="di"><div class="dk">Valor Solicitado</div><div class="dv big" id="mValor">—</div></div>
+          <div class="di"><div class="dk">Prazo</div><div class="dv big" id="mPrazo">—</div></div>
+          <div class="di full"><div class="dk">Finalidade</div><div class="dv" id="mFinal">—</div></div>
+          <div class="di"><div class="dk">Rendimento Mensal</div><div class="dv" id="mRend">—</div></div>
+          <div class="di"><div class="dk">Situação Laboral</div><div class="dv" id="mSit">—</div></div>
+          <div class="di full"><div class="dk">Fiador</div><div class="dv" id="mFiador">—</div></div>
+          <div class="di full"><div class="dk">Descrição</div><div class="dv" id="mDesc" style="color:var(--muted);line-height:1.6">—</div></div>
+          <div class="di full"><div class="dk">Documento</div><div class="dv" id="mDoc">—</div></div>
+        </div>
+      </div>
+      <div class="msec">
+        <div class="mstitle">Estado do Pedido</div>
+        <div id="mBadge"></div>
+      </div>
+    </div>
+      <div class="msec" id="mPagSection">
+        <div class="mstitle">Pagamentos Registados</div>
+        <div id="mPagList"><div style="font-size:.8rem;color:var(--muted)">Nenhum pagamento registado.</div></div>
+      </div>
+    </div>
+    <div class="mfoot" style="flex-wrap:wrap">
+      <button class="bst bst-apr" onclick="changeStatus('aprovado')">✓ Aprovar</button>
+      <button class="bst bst-an"  onclick="changeStatus('analise')">🔍 Em Análise</button>
+      <button class="bst bst-rec" onclick="changeStatus('recusado')">✕ Recusar</button>
+      <button class="bst bst-pag" onclick="openPagModal()">💰 Registar Pagamento</button>
+      <button class="bst bst-del" onclick="openDeleteConfirm()">🗑️ Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var SB_URL = 'https://izawbzjoqbdgnyiipwrj.supabase.co';
+var SB_KEY = 'sb_publishable_6W_mAvBU9RRhq6mBSRle0Q_oleFyW7d';
+
+var pedidos = [];
+var currentFilter = 'todos';
+var currentRef = null;
+
+// ── AUTH ──
+function getCreds() {
+  return { user: localStorage.getItem('sm_user')||'admin', pass: localStorage.getItem('sm_pass')||'stefan2026' };
+}
+
+function doLogin() {
+  var u = document.getElementById('loginUser').value.trim();
+  var p = document.getElementById('loginPass').value.trim();
+
+  // Always accept default credentials regardless of localStorage
+  var isDefault = (u === 'admin' && p === 'stefan2026');
+  var c = getCreds();
+  var isCustom = (u === c.user && p === c.pass);
+
+  if (isDefault || isCustom) {
+    document.getElementById('loginErr').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginErr').textContent = 'Utilizador ou password incorrectos. Tente: admin / stefan2026';
+  }
+}
+
+function doLogout() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ── PAGE NAVIGATION ──
+function showPage(page) {
+  var pages = ['pedidos','relatorios','clientes','definicoes'];
+  var titles = { pedidos:'Pedidos de Financiamento', relatorios:'Relatórios', clientes:'Clientes', definicoes:'Definições' };
+
+  pages.forEach(function(p) {
+    document.getElementById('page-' + p).classList.remove('active');
+    document.getElementById('nav-' + p).classList.remove('active');
+  });
+
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  document.getElementById('pageTitle').textContent = titles[page];
+
+  if (page === 'relatorios') buildRelatorios();
+  if (page === 'clientes')   renderClientes();
+  if (page === 'definicoes') loadDefSettings();
+}
+
+// ── SUPABASE ──
+async function fetchPedidos() {
+  var empty = document.getElementById('emptyState');
+  empty.innerHTML = '<div class="ei">⏳</div>A carregar pedidos...';
+  empty.style.display = 'block';
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/pedidos?order=criado_em.desc&select=*', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    var data = await res.json();
+    pedidos = data.map(function(p) { return {
+      ref: p.ref, nome: p.nome, bi: p.bi, tel: p.telemovel, email: p.email||'',
+      nasc: p.nascimento, genero: p.genero, endereco: p.endereco, cidade: p.cidade,
+      estado: p.estado_civil||'', valor: p.valor, prazo: p.prazo, finalidade: p.finalidade,
+      descricao: p.descricao, rendimento: p.rendimento, situacao: p.situacao,
+      fiador: p.fiador||'', status: p.status, data: p.criado_em ? p.criado_em.split('T')[0] : '',
+      documento_url: p.documento_url||null
+    };});
+    updateStats();
+    renderTable();
+  } catch(e) {
+    empty.innerHTML = '<div class="ei">⚠️</div>Erro ao carregar: ' + e.message;
+  }
+}
+
+// ── STATS ──
+function fmt(n) { return parseFloat(n).toLocaleString('pt-MZ',{minimumFractionDigits:2}); }
+
+function updateStats() {
+  document.getElementById('statTotal').textContent    = pedidos.length;
+  document.getElementById('statPendente').textContent = pedidos.filter(function(p){return p.status==='pendente'}).length;
+  document.getElementById('statAprovado').textContent = pedidos.filter(function(p){return p.status==='aprovado'}).length;
+  document.getElementById('statRecusado').textContent = pedidos.filter(function(p){return p.status==='recusado'}).length;
+}
+
+// ── TABLE ──
+function badge(s) {
+  var m = {pendente:['bp','Pendente'],analise:['ban','Em Análise'],aprovado:['ba','Aprovado'],recusado:['br','Recusado']};
+  var b = m[s]||['bp',s];
+  return '<span class="badge '+b[0]+'">'+b[1]+'</span>';
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  var q = document.getElementById('searchInput').value.toLowerCase();
+  var list = pedidos.filter(function(p) {
+    var mf = currentFilter==='todos' || p.status===currentFilter;
+    var ms = !q || p.nome.toLowerCase().includes(q) || (p.bi||'').includes(q) || p.ref.toLowerCase().includes(q);
+    return mf && ms;
+  });
+  var tbody = document.getElementById('tableBody');
+  var empty = document.getElementById('emptyState');
+  if (list.length===0) { tbody.innerHTML=''; empty.innerHTML='<div class="ei">📭</div>Nenhum pedido encontrado.'; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = list.map(function(p) { return '<tr onclick="openModal(\''+p.ref+'\')"><td class="td-ref">'+p.ref+'</td><td class="td-name">'+p.nome+'</td><td>'+p.cidade+'</td><td class="td-amt">MT '+fmt(p.valor)+'</td><td>'+p.prazo+' meses</td><td>'+p.finalidade+'</td><td>'+badge(p.status)+'</td><td style="color:var(--muted);font-size:.78rem">'+p.data+'</td></tr>'; }).join('');
+}
+
+// ── MODAL ──
+function openModal(ref) {
+  var p = pedidos.find(function(x){return x.ref===ref});
+  if (!p) return;
+  currentRef = ref;
+  document.getElementById('mTitle').textContent  = p.nome;
+  document.getElementById('mRef').textContent    = p.ref;
+  document.getElementById('mNome').textContent   = p.nome;
+  document.getElementById('mBi').textContent     = p.bi;
+  document.getElementById('mTel').textContent    = p.tel;
+  document.getElementById('mEmail').textContent  = p.email||'—';
+  document.getElementById('mNasc').textContent   = p.nasc||'—';
+  document.getElementById('mGenero').textContent = p.genero||'—';
+  document.getElementById('mEnd').textContent    = p.endereco||'—';
+  document.getElementById('mCidade').textContent = p.cidade||'—';
+  document.getElementById('mEstado').textContent = p.estado||'—';
+  document.getElementById('mValor').textContent  = 'MT '+fmt(p.valor);
+  document.getElementById('mPrazo').textContent  = p.prazo+' meses';
+  document.getElementById('mFinal').textContent  = p.finalidade;
+  document.getElementById('mRend').textContent   = 'MT '+fmt(p.rendimento);
+  document.getElementById('mSit').textContent    = p.situacao;
+  document.getElementById('mFiador').textContent = p.fiador||'—';
+  document.getElementById('mDesc').textContent   = p.descricao;
+  document.getElementById('mBadge').innerHTML    = badge(p.status);
+  var docEl = document.getElementById('mDoc');
+  docEl.innerHTML = p.documento_url ? '<a href="'+p.documento_url+'" target="_blank" style="color:var(--gold);text-decoration:none;font-weight:600">📎 Ver / Descarregar Documento</a>' : 'Nenhum documento anexado';
+  document.getElementById('overlay').classList.add('open');
+  renderPagamentos(p);
+}
+
+function closeModal() { document.getElementById('overlay').classList.remove('open'); currentRef=null; }
+function closeOverlay(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
+
+async function changeStatus(s) {
+  if (!currentRef) return;
+  var p = pedidos.find(function(x){return x.ref===currentRef});
+  if (!p) return;
+  try {
+    var res = await fetch(SB_URL+'/rest/v1/pedidos?ref=eq.'+encodeURIComponent(p.ref), {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+      body: JSON.stringify({status:s})
+    });
+    if (!res.ok) throw new Error(await res.text());
+    p.status = s;
+    document.getElementById('mBadge').innerHTML = badge(s);
+    updateStats();
+    renderTable();
+  } catch(e) { alert('Erro ao actualizar: '+e.message); }
+}
+
+// ── RELATORIOS ──
+function buildRelatorios() {
+  // Pedidos stats
+  document.getElementById('relTotal').textContent = pedidos.length;
+  document.getElementById('relAprov').textContent = pedidos.filter(function(p){return p.status==='aprovado'}).length;
+  document.getElementById('relRecus').textContent = pedidos.filter(function(p){return p.status==='recusado'}).length;
+  document.getElementById('relPend').textContent  = pedidos.filter(function(p){return p.status==='pendente'}).length;
+  document.getElementById('relAnal').textContent  = pedidos.filter(function(p){return p.status==='analise'}).length;
+  var totalSolicitado = pedidos.reduce(function(acc,p){return acc+(parseFloat(p.valor)||0)},0);
+  document.getElementById('relMT').textContent = 'MT '+fmt(totalSolicitado);
+
+  // Payment stats - only approved
+  var aprovados = pedidos.filter(function(p){return p.status==='aprovado'});
+  var totalCredito = aprovados.reduce(function(acc,p){return acc+(parseFloat(p.valor)||0)},0);
+  var totalPago = 0;
+  aprovados.forEach(function(p) {
+    try {
+      var pags = p.pagamentos ? JSON.parse(p.pagamentos) : [];
+      pags.forEach(function(pg){ totalPago += parseFloat(pg.valor)||0; });
+    } catch(e){}
+  });
+  var totalEmFalta = Math.max(0, totalCredito - totalPago);
+  var percentPago = totalCredito > 0 ? Math.round((totalPago/totalCredito)*100) : 0;
+
+  document.getElementById('relDesembolsado').textContent = 'MT '+fmt(totalCredito);
+  document.getElementById('relPago').textContent      = 'MT '+fmt(totalPago);
+  document.getElementById('relEmFalta').textContent   = 'MT '+fmt(totalEmFalta);
+  document.getElementById('relPercentPago').textContent = percentPago+'%';
+
+  // Per client table
+  var clienteEmpty = document.getElementById('relClientesEmpty');
+  var clienteRows = document.getElementById('relClientes');
+  if (aprovados.length === 0) {
+    clienteRows.innerHTML = '';
+    clienteEmpty.style.display = 'block';
+  } else {
+    clienteEmpty.style.display = 'none';
+    clienteRows.innerHTML = aprovados.map(function(p) {
+      var pago = 0;
+      try {
+        var pags = p.pagamentos ? JSON.parse(p.pagamentos) : [];
+        pags.forEach(function(pg){ pago += parseFloat(pg.valor)||0; });
+      } catch(e){}
+      var valor = parseFloat(p.valor)||0;
+      var emFalta = Math.max(0, valor - pago);
+      var pct = valor > 0 ? Math.round((pago/valor)*100) : 0;
+      var sitColor = emFalta === 0 ? 'var(--green)' : pago > 0 ? 'var(--warn)' : 'var(--red)';
+      var sitLabel = emFalta === 0 ? '✅ Pago' : pago > 0 ? '⏳ Parcial ('+pct+'%)' : '❌ Por Pagar';
+      return '<tr onclick="openModal(''+p.ref+'')" style="cursor:pointer">'
+        +'<td><div style="font-weight:600">'+p.nome+'</div><div style="font-size:.72rem;color:var(--muted)">'+p.ref+'</div></td>'
+        +'<td style="color:var(--gold);font-weight:700">MT '+fmt(valor)+'</td>'
+        +'<td style="color:var(--green);font-weight:600">MT '+fmt(pago)+'</td>'
+        +'<td style="color:var(--red);font-weight:600">MT '+fmt(emFalta)+'</td>'
+        +'<td><span style="font-size:.75rem;font-weight:700;color:'+sitColor+'">'+sitLabel+'</span></td>'
+        +'</tr>';
+    }).join('');
+  }
+
+  // By province
+  var byProv = {};
+  pedidos.forEach(function(p) {
+    if (!byProv[p.cidade]) byProv[p.cidade] = {count:0,total:0};
+    byProv[p.cidade].count++;
+    byProv[p.cidade].total += parseFloat(p.valor)||0;
+  });
+  var rows = Object.keys(byProv).sort().map(function(c) {
+    return '<tr><td>'+c+'</td><td>'+byProv[c].count+'</td><td style="color:var(--gold);font-weight:600">MT '+fmt(byProv[c].total)+'</td></tr>';
+  }).join('');
+  document.getElementById('relProvincias').innerHTML = rows || '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:1.5rem">Sem dados</td></tr>';
+}
+
+// ── CLIENTES ──
+function renderClientes() {
+  var q = (document.getElementById('cliSearch').value||'').toLowerCase();
+  var list = pedidos.filter(function(p){ return !q || p.nome.toLowerCase().includes(q) || (p.tel||'').includes(q); });
+  var html = list.length===0 ? '<div class="empty"><div class="ei">👥</div>Nenhum cliente encontrado.</div>' :
+    list.map(function(p){ return '<div class="cli-card" onclick="openModal(\''+p.ref+'\')"><div><div class="cli-nome">'+p.nome+'</div><div class="cli-info">'+p.tel+' &nbsp;·&nbsp; '+p.cidade+' &nbsp;·&nbsp; '+p.ref+'</div></div>'+badge(p.status)+'</div>'; }).join('');
+  document.getElementById('cliList').innerHTML = html;
+}
+
+// ── DEFINIÇÕES ──
+function loadDefSettings() {
+  document.getElementById('def-empresa').value   = localStorage.getItem('def_empresa')||'Stefan Microcrédito, EI';
+  document.getElementById('def-tel').value       = localStorage.getItem('def_tel')||'';
+  document.getElementById('def-email').value     = localStorage.getItem('def_email')||'';
+  document.getElementById('def-cidade').value    = localStorage.getItem('def_cidade')||'';
+  document.getElementById('def-minval').value    = localStorage.getItem('def_minval')||'1000';
+  document.getElementById('def-maxval').value    = localStorage.getItem('def_maxval')||'500000';
+  document.getElementById('def-minprazo').value  = localStorage.getItem('def_minprazo')||'1';
+  document.getElementById('def-maxprazo').value  = localStorage.getItem('def_maxprazo')||'24';
+}
+
+function showMsg(id, msg, ok) {
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = ok ? 'rgba(76,175,132,.1)' : 'rgba(224,90,90,.1)';
+  el.style.borderLeft = '3px solid '+(ok?'var(--green)':'var(--red)');
+  el.style.color = ok ? 'var(--green)' : 'var(--red)';
+  setTimeout(function(){ el.style.display='none'; }, 2500);
+}
+
+function saveCredenciais() {
+  var novoUser  = document.getElementById('def-user').value.trim();
+  var passAtual = document.getElementById('def-passAtual').value;
+  var passNova  = document.getElementById('def-passNova').value;
+  var passConf  = document.getElementById('def-passConf').value;
+  var c = getCreds();
+  if (passAtual !== c.pass) { showMsg('msg-cred','Password actual incorrecta.',false); return; }
+  if (passNova && passNova.length < 6) { showMsg('msg-cred','Nova password deve ter pelo menos 6 caracteres.',false); return; }
+  if (passNova && passNova !== passConf) { showMsg('msg-cred','As passwords não coincidem.',false); return; }
+  if (novoUser) localStorage.setItem('sm_user', novoUser);
+  if (passNova) localStorage.setItem('sm_pass', passNova);
+  document.getElementById('def-user').value=''; document.getElementById('def-passAtual').value=''; document.getElementById('def-passNova').value=''; document.getElementById('def-passConf').value='';
+  showMsg('msg-cred','✓ Credenciais actualizadas!',true);
+}
+
+function saveEmpresa() {
+  localStorage.setItem('def_empresa', document.getElementById('def-empresa').value);
+  localStorage.setItem('def_tel',     document.getElementById('def-tel').value);
+  localStorage.setItem('def_email',   document.getElementById('def-email').value);
+  localStorage.setItem('def_cidade',  document.getElementById('def-cidade').value);
+  showMsg('msg-emp','✓ Informações guardadas!',true);
+}
+
+function saveLimites() {
+  var minv = parseFloat(document.getElementById('def-minval').value);
+  var maxv = parseFloat(document.getElementById('def-maxval').value);
+  var minp = parseInt(document.getElementById('def-minprazo').value);
+  var maxp = parseInt(document.getElementById('def-maxprazo').value);
+  if (minv >= maxv) { showMsg('msg-lim','Valor mínimo deve ser menor que o máximo.',false); return; }
+  if (minp >= maxp) { showMsg('msg-lim','Prazo mínimo deve ser menor que o máximo.',false); return; }
+  localStorage.setItem('def_minval',minv); localStorage.setItem('def_maxval',maxv);
+  localStorage.setItem('def_minprazo',minp); localStorage.setItem('def_maxprazo',maxp);
+  showMsg('msg-lim','✓ Limites guardados!',true);
+}
+
+// ── PAGAMENTOS ──
+function openPagModal() {
+  if (!currentRef) return;
+  document.getElementById('pag-valor').value = '';
+  document.getElementById('pag-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('pag-metodo').value = 'M-Pesa';
+  document.getElementById('pag-notas').value = '';
+  document.getElementById('pag-err').style.display = 'none';
+  document.getElementById('pagOverlay').classList.add('open');
+}
+
+function closePagModal() {
+  document.getElementById('pagOverlay').classList.remove('open');
+}
+
+async function savePagamento() {
+  var p = pedidos.find(function(x){return x.ref===currentRef});
+  if (!p) return;
+  var valor = parseFloat(document.getElementById('pag-valor').value);
+  var data  = document.getElementById('pag-data').value;
+  var met   = document.getElementById('pag-metodo').value;
+  var notas = document.getElementById('pag-notas').value;
+  var err   = document.getElementById('pag-err');
+
+  if (!valor || valor <= 0) { err.textContent='Insira um valor válido.'; err.style.display='block'; return; }
+  if (!data) { err.textContent='Selecione a data do pagamento.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  var btn = document.getElementById('btnPagSave');
+  btn.textContent = 'A guardar...'; btn.disabled = true;
+
+  try {
+    // Save to Supabase pagamentos table
+    var pagamento = { pedido_ref: p.ref, valor: valor, data_pagamento: data, metodo: met, notas: notas };
+    var res = await fetch(SB_URL + '/rest/v1/pagamentos', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal' },
+      body: JSON.stringify(pagamento)
+    });
+
+    // If table doesn't exist yet, store in pedido notes field
+    if (!res.ok) {
+      var existing = p.pagamentos ? JSON.parse(p.pagamentos) : [];
+      existing.push({ valor: valor, data: data, metodo: met, notas: notas });
+      await fetch(SB_URL+'/rest/v1/pedidos?ref=eq.'+encodeURIComponent(p.ref), {
+        method:'PATCH',
+        headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'},
+        body: JSON.stringify({ pagamentos: JSON.stringify(existing) })
+      });
+      p.pagamentos = JSON.stringify(existing);
+    }
+
+    closePagModal();
+    renderPagamentos(p);
+    // Auto update status to 'pago' if desired
+  } catch(e) {
+    err.textContent = 'Erro: ' + e.message; err.style.display='block';
+  } finally {
+    btn.textContent = 'Guardar Pagamento'; btn.disabled = false;
+  }
+}
+
+function renderPagamentos(p) {
+  var list = document.getElementById('mPagList');
+  var pags = [];
+  try { pags = p.pagamentos ? JSON.parse(p.pagamentos) : []; } catch(e) { pags = []; }
+
+  if (pags.length === 0) {
+    list.innerHTML = '<div style="font-size:.8rem;color:var(--muted)">Nenhum pagamento registado.</div>';
+    return;
+  }
+
+  var totalPago = pags.reduce(function(acc,pg){ return acc + (parseFloat(pg.valor)||0); }, 0);
+  var html = '<div style="margin-bottom:.6rem;font-size:.8rem;color:var(--muted)">Total pago: <strong style="color:var(--green)">MT ' + fmt(totalPago) + '</strong></div>';
+  html += '<div class="pag-list">';
+  pags.forEach(function(pg) {
+    html += '<div class="pag-item"><span class="pag-item-date">'+pg.data+' &nbsp;·&nbsp; '+pg.metodo+(pg.notas?' &nbsp;·&nbsp; '+pg.notas:'')+'</span><span class="pag-item-val">MT '+fmt(pg.valor)+'</span></div>';
+  });
+  html += '</div>';
+  list.innerHTML = html;
+}
+
+// ── DELETE ──
+function openDeleteConfirm() {
+  if (!currentRef) return;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function closeDeleteConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+}
+
+async function deletePedido() {
+  if (!currentRef) return;
+  var btn = document.getElementById('btnConfDel');
+  btn.textContent = 'A eliminar...'; btn.disabled = true;
+
+  try {
+    // First try DELETE
+    var res = await fetch(SB_URL+'/rest/v1/pedidos?ref=eq.'+encodeURIComponent(currentRef), {
+      method: 'DELETE',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Prefer': 'return=minimal',
+        'Content-Type': 'application/json'
+      }
+    });
+
+    // If DELETE blocked by RLS, mark as eliminado instead
+    if (!res.ok) {
+      var errText = await res.text();
+      if (errText.includes('row-level security') || errText.includes('policy')) {
+        // Fallback: mark status as eliminado
+        var res2 = await fetch(SB_URL+'/rest/v1/pedidos?ref=eq.'+encodeURIComponent(currentRef), {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SB_KEY,
+            'Authorization': 'Bearer ' + SB_KEY,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ status: 'eliminado' })
+        });
+        if (!res2.ok) throw new Error(await res2.text());
+      } else {
+        throw new Error(errText);
+      }
+    }
+
+    // Remove from local list
+    pedidos = pedidos.filter(function(p){ return p.ref !== currentRef; });
+    closeDeleteConfirm();
+    closeModal();
+    updateStats();
+    renderTable();
+
+  } catch(e) {
+    alert('Erro ao eliminar: ' + e.message);
+  } finally {
+    btn.textContent = 'Sim, Eliminar'; btn.disabled = false;
+  }
+}
+
+// ── INIT ──
+function init() {
+  document.getElementById('topDate').textContent = new Date().toLocaleDateString('pt-MZ',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  fetchPedidos();
+}
+</script>
+<!-- CONFIRM DELETE -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Eliminar Pedido?</div>
+    <div class="confirm-msg">Esta acção é <strong style="color:var(--red)">permanente e irreversível</strong>. O pedido e todos os dados associados serão eliminados definitivamente.</div>
+    <div class="confirm-btns">
+      <button class="btn-conf-cancel" onclick="closeDeleteConfirm()">Cancelar</button>
+      <button class="btn-conf-del" id="btnConfDel" onclick="deletePedido()">Sim, Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGAMENTO MODAL -->
+<div class="pag-overlay" id="pagOverlay">
+  <div class="pag-box">
+    <div class="pag-head">
+      <div class="pag-title">💰 Registar Pagamento</div>
+      <button onclick="closePagModal()" style="width:30px;height:30px;border-radius:7px;background:var(--dark-3);border:none;color:var(--muted);cursor:pointer;font-size:.9rem">✕</button>
+    </div>
+    <div class="pag-body">
+      <div class="pf">
+        <label>Valor Pago (MT) <span style="color:var(--gold)">*</span></label>
+        <input type="number" id="pag-valor" placeholder="ex: 5000" min="1">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
+        <div class="pf">
+          <label>Data do Pagamento <span style="color:var(--gold)">*</span></label>
+          <input type="date" id="pag-data">
+        </div>
+        <div class="pf">
+          <label>Método de Pagamento</label>
+          <select id="pag-metodo">
+            <option value="M-Pesa">M-Pesa</option>
+            <option value="E-Mola">E-Mola</option>
+            <option value="Transferência Bancária">Transferência Bancária</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="pf">
+        <label>Notas (Opcional)</label>
+        <input type="text" id="pag-notas" placeholder="ex: Parcela nº 1, referência...">
+      </div>
+      <div id="pag-err" style="display:none;font-size:.78rem;color:var(--red);padding:.5rem .8rem;background:rgba(224,90,90,.08);border-left:3px solid var(--red);border-radius:5px;margin-top:.5rem"></div>
+    </div>
+    <div class="pag-foot">
+      <button class="btn-pag-cancel" onclick="closePagModal()">Cancelar</button>
+      <button class="btn-pag-save" id="btnPagSave" onclick="savePagamento()">Guardar Pagamento</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
